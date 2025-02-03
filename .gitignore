@@ -1,5 +1,5 @@
-build/
-dist/
+# build/
+# dist/
 **/*.min.js
 node_modules/
 coverage/

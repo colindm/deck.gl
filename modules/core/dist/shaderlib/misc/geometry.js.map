@@ -1,0 +1,1 @@
+{"version":3,"file":"geometry.js","sourceRoot":"","sources":["../../../src/shaderlib/misc/geometry.ts"],"names":[],"mappings":"AAAA,UAAU;AACV,+BAA+B;AAC/B,oCAAoC;AAIpC,MAAM,OAAO,GAAG,gCAAgC,CAAC;AACjD,MAAM,EAAE,GAAG;EACT,OAAO;;;;;;;;;;;;;;;;;CAiBR,CAAC;AAEF,MAAM,EAAE,GAAG;EACT,OAAO;;;;;;;;;CASR,CAAC;AAEF,eAAe,EAAC,IAAI,EAAE,UAAU,EAAE,EAAE,EAAE,EAAE,EAAiC,CAAC"}
