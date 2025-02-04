@@ -75,31 +75,73 @@ in float vDashOffset;
 };
 
 export const offsetShaders = {
-  inject: {
-    'vs:#decl': `
-in float instanceOffsets;
+//   inject: {
+//     'vs:#decl': `
+// in vec2 instanceOffsets;
+// `,
+//     'vs:DECKGL_FILTER_SIZE': `
+//   float offsetWidth = abs(instanceOffsets.y * 2.0) + 1.0;
+//   size *= offsetWidth;
+// `,
+//     'vs:#main-end': `
+//   float offsetWidth = abs(instanceOffsets.y * 2.0) + 1.0;
+//   float offsetDir = -sign(instanceOffsets.y);
+//   vPathPosition.x = (vPathPosition.x + offsetDir) * offsetWidth - offsetDir;
+//   vPathPosition.y *= offsetWidth;
+//   vPathLength *= offsetWidth;
+// `,
+//   'fs:#main-start': `
+//   float dist = abs(vPathPosition.x);
+//   // Smooth transition at the edges (from 0.9 to 1.1 for a slightly wider antialiasing band)
+//   float opacity = 1.0 - smoothstep(0.9, 1.1, dist);
+// `,
+//     'fs:#main-end': `
+//   fragColor.a *= opacity;
+//   if (fragColor.a < 0.001) {
+//     discard;
+//   }
+// `
+
+inject: {
+  'vs:#decl': `
+in vec2 instanceOffsets;  // x: min clip value, y: max clip value
+out float vPathPositionX;
+out float vPathProgress;  // Add this to pass position along path
 `,
-    'vs:DECKGL_FILTER_SIZE': `
-  float offsetWidth = abs(instanceOffsets * 2.0) + 1.0;
-  size *= offsetWidth;
+'vs:DECKGL_FILTER_SIZE': `
+float offsetWidth = abs(instanceOffsets.y - instanceOffsets.x);
+size *= offsetWidth;
 `,
-    'vs:#main-end': `
-  float offsetWidth = abs(instanceOffsets * 2.0) + 1.0;
-  float offsetDir = -sign(instanceOffsets);
-  vPathPosition.x = (vPathPosition.x + offsetDir) * offsetWidth - offsetDir;
-  vPathPosition.y *= offsetWidth;
-  vPathLength *= offsetWidth;
+// 'vs:DECKGL_FILTER_SIZE': `
+// // size *= instanceOffsets.x + 1.0;
+// // Make the line wider by scaling the size
+// // size *= 3.0;
+// `,
+'vs:#main-end': `
+// Scale the x position for a wider line
+vPathPosition.x *= abs(instanceOffsets.y - instanceOffsets.x);
+vPathPositionX = vPathPosition.x;
+vPathProgress = vPathPosition.y / vPathLength;  // Calculate progress along path
 `,
-  'fs:#main-start': `
-  float dist = abs(vPathPosition.x);
-  // Smooth transition at the edges (from 0.9 to 1.1 for a slightly wider antialiasing band)
-  float opacity = 1.0 - smoothstep(0.9, 1.1, dist);
+
+'fs:#decl': `
+in float vPathPositionX;
+in float vPathProgress;
 `,
+
     'fs:#main-end': `
-  fragColor.a *= opacity;
-  if (fragColor.a < 0.001) {
-    discard;
-  }
+float fadeThreshold = 0.5;
+// Use progress to interpolate between fading bottom (-1) and top (1)
+float topFadeAmount = mix(0.0, 1.0, vPathProgress);
+float bottomFadeAmount = mix(1.0, 0.0, vPathProgress);
+
+if (vPathPositionX * topFadeAmount > fadeThreshold) {
+    fragColor.a *= 0.0;
+}
+
+if (vPathPositionX * -bottomFadeAmount > fadeThreshold) {
+    fragColor.a *= 0.0;
+}
 `
-  }
+}
 };

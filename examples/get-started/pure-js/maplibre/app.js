@@ -15,10 +15,10 @@ const AIR_PORTS =
 const map = new maplibregl.Map({
   container: 'map',
   style: 'https://basemaps.cartocdn.com/gl/positron-gl-style/style.json',
-  center: [0.45, 51.47],
-  zoom: 4,
+  center: [4.45, 51.47],
+  zoom: 5.5,
   bearing: 0,
-  pitch: 30,
+  // pitch: 30,
   antialias: true
 });
 
@@ -30,52 +30,79 @@ const line = {
   ]
 };
 
+const line2 = {
+  type: 'FeatureCollection',
+  features: [
+    { type: 'Feature', geometry: { type: 'LineString', coordinates: [[1.66, 52.66], [9.64, 48.67]] } }
+  ]
+};
+
 const deckOverlay = new DeckOverlay({
   interleaved: true,
   layers: [
-    new GeoJsonLayer({
-      id: 'airports',
-      data: AIR_PORTS,
-      // Styles
-      filled: true,
-      pointRadiusMinPixels: 2,
-      pointRadiusScale: 2000,
-      getPointRadius: f => 11 - f.properties.scalerank,
-      getFillColor: [200, 0, 80, 180],
-      // Interactive props
-      pickable: true,
-      autoHighlight: true,
-      onClick: info =>
-        // eslint-disable-next-line
-        info.object && alert(`${info.object.properties.name} (${info.object.properties.abbrev})`)
-      // beforeId: 'watername_ocean' // In interleaved mode, render the layer under map labels
-    }),
-    new ArcLayer({
-      id: 'arcs',
-      data: AIR_PORTS,
-      dataTransform: d => d.features.filter(f => f.properties.scalerank < 4),
-      // Styles
-      getSourcePosition: f => [-0.4531566, 51.4709959], // London
-      getTargetPosition: f => f.geometry.coordinates,
-      getSourceColor: [0, 128, 200],
-      getTargetColor: [200, 0, 80],
-      getWidth: 1
-    }),
-    new GeoJsonLayer({
-      id: 'line-og',
-      data: line,
-      getLineColor: [0, 128, 200],
-      getLineWidth: 7,
-      lineWidthMinPixels: 5
-    }),
+    // new GeoJsonLayer({
+    //   id: 'airports',
+    //   data: AIR_PORTS,
+    //   // Styles
+    //   filled: true,
+    //   pointRadiusMinPixels: 2,
+    //   pointRadiusScale: 2000,
+    //   getPointRadius: f => 11 - f.properties.scalerank,
+    //   getFillColor: [200, 0, 80, 180],
+    //   // Interactive props
+    //   pickable: true,
+    //   autoHighlight: true,
+    //   onClick: info =>
+    //     // eslint-disable-next-line
+    //     info.object && alert(`${info.object.properties.name} (${info.object.properties.abbrev})`)
+    //   // beforeId: 'watername_ocean' // In interleaved mode, render the layer under map labels
+    // }),
+    // new ArcLayer({
+    //   id: 'arcs',
+    //   data: AIR_PORTS,
+    //   dataTransform: d => d.features.filter(f => f.properties.scalerank < 4),
+    //   // Styles
+    //   getSourcePosition: f => [-0.4531566, 51.4709959], // London
+    //   getTargetPosition: f => f.geometry.coordinates,
+    //   getSourceColor: [0, 128, 200],
+    //   getTargetColor: [200, 0, 80],
+    //   getWidth: 1
+    // }),
+    // new GeoJsonLayer({
+    //   id: 'line-og',
+    //   data: line,
+    //   getLineColor: [0, 128, 200],
+    //   getLineWidth: 7,
+    //   lineWidthMinPixels: 5
+    // }),
     new GeoJsonLayer({
       id: 'line',
       data: line,
       getLineColor: [128, 0, 200],
       getLineWidth: 7,
       lineWidthMinPixels: 5,
-      getOffset: (f) => 3,
+      getOffset: (f) => [0,2],
       extensions: [new PathStyleExtension({ offset: true })],
+    }),
+
+    // new GeoJsonLayer({
+    //   id: 'line3',
+    //   data: line,
+    //   getLineColor: [128, 0, 200],
+    //   getLineWidth: 7,
+    //   lineWidthMinPixels: 5,
+    //   getOffset: (f) => [2,2],
+    //   extensions: [new PathStyleExtension({ offset: true })],
+    // }),
+    
+    new GeoJsonLayer({
+      id: 'line2',
+      data: line2,
+      getLineColor: [128, 0, 200],
+      getLineWidth: 7,
+      lineWidthMinPixels: 5,
+      // getOffset: (f) => [0,0],
+      // extensions: [new PathStyleExtension({ offset: true })],
     })
   ]
 });

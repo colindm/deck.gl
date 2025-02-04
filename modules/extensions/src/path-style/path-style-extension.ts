@@ -11,7 +11,7 @@ import type {ShaderModule} from '@luma.gl/shadertools';
 
 const defaultProps = {
   getDashArray: {type: 'accessor', value: [0, 0]},
-  getOffset: {type: 'accessor', value: 0},
+  getOffset: {type: 'accessor', value: [0, 0]},
   dashJustified: false,
   dashGapPickable: false
 };
@@ -29,10 +29,11 @@ export type PathStyleExtensionProps<DataT = any> = {
   getDashArray?: Accessor<DataT, [number, number]>;
   /**
    * Accessor for the offset to draw each path with, relative to the width of the path.
+   * Can be a single number or an array of [startOffset, endOffset].
    * Negative offset is to the left hand side, and positive offset is to the right hand side.
-   * @default 0
+   * @default [0, 0]
    */
-  getOffset?: Accessor<DataT, number>;
+  getOffset?: Accessor<DataT, number | [number, number]>;
   /**
    * If `true`, adjust gaps for the dashes to align at both ends.
    * @default false
@@ -135,7 +136,16 @@ export default class PathStyleExtension extends LayerExtension<PathStyleExtensio
     }
     if (extension.opts.offset) {
       attributeManager.addInstanced({
-        instanceOffsets: {size: 1, accessor: 'getOffset'}
+        instanceOffsets: {
+          size: 2,
+          accessor: 'getOffset',
+          transform: (offset: number | [number, number]) => {
+            if (Array.isArray(offset)) {
+              return offset;
+            }
+            return [offset, offset];
+          }
+        }
       });
     }
   }
