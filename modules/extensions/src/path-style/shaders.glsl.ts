@@ -136,11 +136,11 @@ float topFadeAmount = mix(0.0, 1.0, vPathProgress);
 float bottomFadeAmount = mix(1.0, 0.0, vPathProgress);
 
 if (vPathPositionX * topFadeAmount > fadeThreshold) {
-    fragColor.a *= 0.0;
+    fragColor.a *= 0.5;
 }
 
 if (vPathPositionX * -bottomFadeAmount > fadeThreshold) {
-    fragColor.a *= 0.0;
+    fragColor.a *= 0.5;
 }
 `
 }
