@@ -3,8 +3,8 @@
 // Copyright (c) vis.gl contributors
 
 import {MapboxOverlay as DeckOverlay} from '@deck.gl/mapbox';
-import {GeoJsonLayer, ArcLayer } from '@deck.gl/layers';
-import { PathStyleExtension } from "@deck.gl/extensions";
+import {GeoJsonLayer, ArcLayer} from '@deck.gl/layers';
+import {PathStyleExtension} from '@deck.gl/extensions';
 import maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 
@@ -26,14 +26,32 @@ const map = new maplibregl.Map({
 const line = {
   type: 'FeatureCollection',
   features: [
-    { type: 'Feature', geometry: { type: 'LineString', coordinates: [[1.46, 52.46], [9.54, 48.37]] } }
+    {
+      type: 'Feature',
+      geometry: {
+        type: 'LineString',
+        coordinates: [
+          [1.46, 52.46],
+          [9.54, 48.37]
+        ]
+      }
+    }
   ]
 };
 
 const line2 = {
   type: 'FeatureCollection',
   features: [
-    { type: 'Feature', geometry: { type: 'LineString', coordinates: [[1.66, 52.66], [9.64, 48.67]] } }
+    {
+      type: 'Feature',
+      geometry: {
+        type: 'LineString',
+        coordinates: [
+          [1.66, 52.66],
+          [9.64, 48.67]
+        ]
+      }
+    }
   ]
 };
 
@@ -81,8 +99,8 @@ const deckOverlay = new DeckOverlay({
       getLineColor: [128, 0, 200],
       getLineWidth: 7,
       lineWidthMinPixels: 5,
-      getOffset: (f) => [0,2],
-      extensions: [new PathStyleExtension({ offset: true })],
+      getOffset: f => [0, 2],
+      extensions: [new PathStyleExtension({offset: true})]
     }),
 
     // new GeoJsonLayer({
@@ -94,13 +112,13 @@ const deckOverlay = new DeckOverlay({
     //   getOffset: (f) => [2,2],
     //   extensions: [new PathStyleExtension({ offset: true })],
     // }),
-    
+
     new GeoJsonLayer({
       id: 'line2',
       data: line2,
       getLineColor: [128, 0, 200],
       getLineWidth: 7,
-      lineWidthMinPixels: 5,
+      lineWidthMinPixels: 5
       // getOffset: (f) => [0,0],
       // extensions: [new PathStyleExtension({ offset: true })],
     })
