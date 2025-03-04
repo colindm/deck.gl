@@ -4,14 +4,15 @@
 
 import {LayerExtension, _mergeShaders as mergeShaders} from '@deck.gl/core';
 import {vec3} from '@math.gl/core';
-import {dashShaders, offsetShaders} from './shaders.glsl';
+import {dashShaders, multiOffsetShaders, singleOffsetShaders} from './shaders.glsl';
 
 import type {Layer, LayerContext, Accessor, UpdateParameters} from '@deck.gl/core';
 import type {ShaderModule} from '@luma.gl/shadertools';
 
 const defaultProps = {
   getDashArray: {type: 'accessor', value: [0, 0]},
-  getOffset: {type: 'accessor', value: [0, 0]},
+  getMultiOffset: {type: 'accessor', value: [0, 0]},
+  getSingleOffset: {type: 'accessor', value: 0},
   dashJustified: false,
   dashGapPickable: false
 };
@@ -29,11 +30,18 @@ export type PathStyleExtensionProps<DataT = any> = {
   getDashArray?: Accessor<DataT, [number, number]>;
   /**
    * Accessor for the offset to draw each path with, relative to the width of the path.
-   * Can be a single number or an array of [startOffset, endOffset].
+   * Is an array of [startOffset, endOffset].
    * Negative offset is to the left hand side, and positive offset is to the right hand side.
    * @default [0, 0]
    */
-  getOffset?: Accessor<DataT, number | [number, number]>;
+  getMultiOffset?: Accessor<DataT, [number, number]>;
+  /**
+   * Accessor for the offset to draw each path with, relative to the width of the path.
+   * Is a single number.
+   * Negative offset is to the left hand side, and positive offset is to the right hand side.
+   * @default 0
+   */
+  getSingleOffset?: Accessor<DataT, number>;
   /**
    * If `true`, adjust gaps for the dashes to align at both ends.
    * @default false
@@ -53,10 +61,15 @@ export type PathStyleExtensionOptions = {
    */
   dash: boolean;
   /**
-   * Add capability to offset lines.
+   * Add capability to offset lines with a different start and end offset.
    * @default false
    */
-  offset: boolean;
+  multiOffset: boolean;
+  /**
+   * Add capability to offset lines with a single offset.
+   * @default false
+   */
+  singleOffset: boolean;
   /**
    * Improve dash rendering quality in certain circumstances. Note that this option introduces additional performance overhead.
    * @default false
@@ -71,10 +84,11 @@ export default class PathStyleExtension extends LayerExtension<PathStyleExtensio
 
   constructor({
     dash = false,
-    offset = false,
+    multiOffset = false,
+    singleOffset = false,
     highPrecisionDash = false
   }: Partial<PathStyleExtensionOptions> = {}) {
-    super({dash: dash || highPrecisionDash, offset, highPrecisionDash});
+    super({dash: dash || highPrecisionDash, multiOffset, singleOffset, highPrecisionDash});
   }
 
   isEnabled(layer: Layer<PathStyleExtensionProps>): boolean {
@@ -91,8 +105,11 @@ export default class PathStyleExtension extends LayerExtension<PathStyleExtensio
     if (extension.opts.dash) {
       result = mergeShaders(result, dashShaders);
     }
-    if (extension.opts.offset) {
-      result = mergeShaders(result, offsetShaders);
+    if (extension.opts.multiOffset) {
+      result = mergeShaders(result, multiOffsetShaders);
+    }
+    if (extension.opts.singleOffset) {
+      result = mergeShaders(result, singleOffsetShaders);
     }
 
     const {inject} = result;
@@ -134,18 +151,18 @@ export default class PathStyleExtension extends LayerExtension<PathStyleExtensio
             }
       });
     }
-    if (extension.opts.offset) {
+    if (extension.opts.multiOffset) {
       attributeManager.addInstanced({
         instanceOffsets: {
           size: 2,
-          accessor: 'getOffset',
-          transform: (offset: number | [number, number]) => {
-            if (Array.isArray(offset)) {
-              return offset;
-            }
-            return [offset, offset];
-          }
+          accessor: 'getMultiOffset',
+          transform: (offset: [number, number]) => offset
         }
+      });
+    }
+    if (extension.opts.singleOffset) {
+      attributeManager.addInstanced({
+        instanceOffsets: {size: 1, accessor: 'getSingleOffset'}
       });
     }
   }
