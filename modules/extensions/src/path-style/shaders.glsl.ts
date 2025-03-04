@@ -85,18 +85,27 @@ in vec2 instanceOffsets;  // x: start offset, y: end offset
 out float vPathPositionX;
 out float vPathProgress;  // Add this to pass position along path
 out vec2 vInstanceOffsets;  // Add this to pass instanceOffsets to fragment shader
+out float vSizeMultiplier;
 `,
     'vs:DECKGL_FILTER_SIZE': `
     // Scale size to accommodate both offsets
     float maxOffset = max(abs(instanceOffsets.x), abs(instanceOffsets.y));
-    // The size is the width of the line with the filtered and unfiltered parts combined
-    float totalLineWidth = (max(maxOffset, 1.0) + 1.0);
-    size *= 3.0 * maxOffset;
+
+    // No clue why these numbers are what they are
+    float sizeMultiplier = 3.0;
+    if (instanceOffsets.y == 2.0) {
+      sizeMultiplier = 2.5;
+    } else if (instanceOffsets.y == 3.0) {
+      sizeMultiplier = 2.33;
+    }
+
+    size *= (sizeMultiplier) * maxOffset;
     vInstanceOffsets = instanceOffsets;  // Pass instanceOffsets to fragment shader
+    vSizeMultiplier = sizeMultiplier;
     `,
     'vs:#main-end': `
     // Scale the x position for a wider line
-    vPathPosition.x *= instanceOffsets.y + instanceOffsets.x;
+    vPathPosition.x *= instanceOffsets.y + (instanceOffsets.x * 1.5);
     vPathPositionX = vPathPosition.x;
     vPathProgress = vPathPosition.y / vPathLength;  // Calculate progress along path
     `,
@@ -106,31 +115,57 @@ in float vPathPositionX;
 in float vPathProgress;
 in float unusedBottom;
 in vec2 vInstanceOffsets;  // Receive instanceOffsets in fragment shader
+in float vSizeMultiplier;
 `,
     // TODO: For the train paths make it so that it highlights areas with vPathProgress between say 0.1 and 0.5
     'fs:#main-end': `
-    float lineWidth = 0.33;
-    float unusedBottom = lineWidth * -1.0;
+    float lineWidth = 1.0 / vSizeMultiplier;
+    if (vInstanceOffsets.x == 1.0) {
+      lineWidth *= 0.5;
+    }
+
+    float extraBottomPadding = 0.0;
+    // No clue why these numbers are what they are
+    if (vInstanceOffsets.x == 1.0) {
+      extraBottomPadding = 0.9;
+    } else if (vInstanceOffsets.x == 2.0) {
+      extraBottomPadding = 0.625;
+    }
+
+    // Needed to keep things aligned when the start offset isn't 0
+    float unusedBottom = -lineWidth + extraBottomPadding;
+
     // Remove the unused bottom of the line
     if (vPathPositionX < unusedBottom) {
       fragColor.a *= 0.5;
     }
 
     // No clue why these numbers are what they are
-    float vPathMultiplier = 1.5;
-    if (vInstanceOffsets.y == 2.0) {
-      vPathMultiplier = 0.6;
-    } else if (vInstanceOffsets.y == 3.0) {
-      vPathMultiplier = 0.375;
+    float vAngleMultiplier = 1.5;
+    if (vInstanceOffsets.y == 2.0 && vInstanceOffsets.x == 0.0) {
+      vAngleMultiplier = 0.625;
+    } else if (vInstanceOffsets.y == 2.0 && vInstanceOffsets.x == 1.0) {
+      vAngleMultiplier = 0.7;
+    } else if (vInstanceOffsets.y == 3.0 && vInstanceOffsets.x == 0.0) {
+      vAngleMultiplier = 0.39;
+    } else if (vInstanceOffsets.y == 3.0 && vInstanceOffsets.x == 1.0) {
+      vAngleMultiplier = 0.43;
     }
 
     // Remove the bottom triangle of the line
-    if (vPathPositionX < ((vPathProgress / vPathMultiplier) - lineWidth)) {
+    if ((vPathPositionX + (vInstanceOffsets.x * -extraBottomPadding)) < ((vPathProgress / vAngleMultiplier) - lineWidth)) {
       fragColor.a *= 0.5;
     }
 
+    // No clue why these numbers are what they are
+    float topTriangleMultiplier = 0.0;
+    if (vInstanceOffsets.x == 1.0 && vInstanceOffsets.y == 2.0) {
+      topTriangleMultiplier = 1.85;
+    } else if (vInstanceOffsets.x == 1.0 && vInstanceOffsets.y == 3.0) {
+      topTriangleMultiplier = 1.95;
+    }
     // Remove the top triangle of the line
-    if (vPathPositionX > ((vPathProgress / vPathMultiplier) + lineWidth)) {
+    if ((vPathPositionX + (vInstanceOffsets.x * -topTriangleMultiplier)) > ((vPathProgress / vAngleMultiplier) + lineWidth)) {
       fragColor.a *= 0.5;
     }
 `

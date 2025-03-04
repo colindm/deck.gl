@@ -15,7 +15,7 @@ const AIR_PORTS =
 const map = new maplibregl.Map({
   container: 'map',
   style: 'https://basemaps.cartocdn.com/gl/positron-gl-style/style.json',
-  center: [4.45, 51.47],
+  center: [9, 48],
   zoom: 5.5,
   bearing: 0,
   // pitch: 30,
@@ -114,15 +114,16 @@ const deckOverlay = new DeckOverlay({
       id: 'line-connect',
       data: lineConnect,
       getLineColor: [200, 0, 128],
-      lineWidthMinPixels: 10,
-      getMultiOffset: f => [0, 3],
+      lineWidthMinPixels: 5,
+      getMultiOffset: f => [1, 3],
       extensions: [new PathStyleExtension({multiOffset: true})]
     }),
     new GeoJsonLayer({
       id: 'line-connect2',
       data: lineConnect2,
       getLineColor: [200, 0, 128],
-      lineWidthMinPixels: 10,
+      lineWidthMinPixels: 5,
+      // lineCapRounded: true,
       getSingleOffset: f => -3,
       extensions: [new PathStyleExtension({singleOffset: true})]
     }),
@@ -131,7 +132,7 @@ const deckOverlay = new DeckOverlay({
       data: lineConnect3,
       getLineColor: [200, 0, 128],
       lineWidthMinPixels: 10,
-      getSingleOffset: f => -3,
+      getSingleOffset: f => -2,
       extensions: [new PathStyleExtension({singleOffset: true})]
     }),
     // new GeoJsonLayer({
