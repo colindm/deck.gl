@@ -4,7 +4,12 @@
 
 import {LayerExtension, _mergeShaders as mergeShaders} from '@deck.gl/core';
 import {vec3} from '@math.gl/core';
-import {dashShaders, multiOffsetShaders, singleOffsetShaders} from './shaders.glsl';
+import {
+  dashShaders,
+  multiOffsetShaders,
+  singleOffsetShaders,
+  variableOffsetShaders
+} from './shaders.glsl';
 
 import type {Layer, LayerContext, Accessor, UpdateParameters} from '@deck.gl/core';
 import type {ShaderModule} from '@luma.gl/shadertools';
@@ -13,13 +18,16 @@ const defaultProps = {
   getDashArray: {type: 'accessor', value: [0, 0]},
   getMultiOffset: {type: 'accessor', value: [0, 0]},
   getSingleOffset: {type: 'accessor', value: 0},
+  getOffset: {type: 'accessor', value: 0},
   dashJustified: false,
-  dashGapPickable: false
+  dashGapPickable: false,
+  getSegmentOffsets: {type: 'accessor', value: [0, 0, 0, 0, 0]} // Default 5 segments with no offset
 };
 
 type PathStyleProps = {
   dashAlignMode: number;
   dashGapPickable: boolean;
+  debug: number;
 };
 
 export type PathStyleExtensionProps<DataT = any> = {
@@ -43,6 +51,11 @@ export type PathStyleExtensionProps<DataT = any> = {
    */
   getSingleOffset?: Accessor<DataT, number>;
   /**
+   * Accessor for the offset to draw each path with for variable offset mode
+   * @default 0
+   */
+  getOffset?: Accessor<DataT, number>;
+  /**
    * If `true`, adjust gaps for the dashes to align at both ends.
    * @default false
    */
@@ -52,6 +65,11 @@ export type PathStyleExtensionProps<DataT = any> = {
    * @default false
    */
   dashGapPickable?: boolean;
+  /**
+   * Array of offsets for each segment of the path
+   * @default [0, 0, 0, 0, 0]
+   */
+  getSegmentOffsets?: Accessor<DataT, number[]>;
 };
 
 export type PathStyleExtensionOptions = {
@@ -71,6 +89,11 @@ export type PathStyleExtensionOptions = {
    */
   singleOffset: boolean;
   /**
+   * Add capability to vary offset along the path.
+   * @default false
+   */
+  variableOffset: boolean;
+  /**
    * Improve dash rendering quality in certain circumstances. Note that this option introduces additional performance overhead.
    * @default false
    */
@@ -86,9 +109,16 @@ export default class PathStyleExtension extends LayerExtension<PathStyleExtensio
     dash = false,
     multiOffset = false,
     singleOffset = false,
+    variableOffset = false,
     highPrecisionDash = false
   }: Partial<PathStyleExtensionOptions> = {}) {
-    super({dash: dash || highPrecisionDash, multiOffset, singleOffset, highPrecisionDash});
+    super({
+      dash: dash || highPrecisionDash,
+      multiOffset,
+      singleOffset,
+      variableOffset,
+      highPrecisionDash
+    });
   }
 
   isEnabled(layer: Layer<PathStyleExtensionProps>): boolean {
@@ -111,6 +141,9 @@ export default class PathStyleExtension extends LayerExtension<PathStyleExtensio
     if (extension.opts.singleOffset) {
       result = mergeShaders(result, singleOffsetShaders);
     }
+    if (extension.opts.variableOffset) {
+      result = mergeShaders(result, variableOffsetShaders);
+    }
 
     const {inject} = result;
     const pathStyle: ShaderModule<PathStyleProps> = {
@@ -118,7 +151,8 @@ export default class PathStyleExtension extends LayerExtension<PathStyleExtensio
       inject,
       uniformTypes: {
         dashAlignMode: 'f32',
-        dashGapPickable: 'i32'
+        dashGapPickable: 'i32',
+        debug: 'f32'
       }
     };
     return {
@@ -165,6 +199,11 @@ export default class PathStyleExtension extends LayerExtension<PathStyleExtensio
         instanceOffsets: {size: 1, accessor: 'getSingleOffset'}
       });
     }
+    if (extension.opts.variableOffset) {
+      attributeManager.addInstanced({
+        instanceOffsets: {size: 1, accessor: 'getOffset'}
+      });
+    }
   }
 
   updateState(
@@ -179,7 +218,8 @@ export default class PathStyleExtension extends LayerExtension<PathStyleExtensio
     if (extension.opts.dash) {
       const pathStyleProps: PathStyleProps = {
         dashAlignMode: this.props.dashJustified ? 1 : 0,
-        dashGapPickable: Boolean(this.props.dashGapPickable)
+        dashGapPickable: Boolean(this.props.dashGapPickable),
+        debug: 0
       };
       this.setShaderModuleProps({pathStyle: pathStyleProps});
     }

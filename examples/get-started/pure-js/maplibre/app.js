@@ -31,7 +31,7 @@ const createLayers = () => [
     data: lineConnect,
     getLineColor: [200, 0, 128],
     lineWidthMinPixels: 10,
-    getSingleOffset: () => offset,
+    getSingleOffset: () => Number(offset),
     extensions: [new PathStyleExtension({singleOffset: true})]
   }),
   new GeoJsonLayer({

@@ -227,3 +227,27 @@ in float instanceOffsets;
 //   `
 //   }
 // };
+
+export const variableOffsetShaders = {
+  inject: {
+    'vs:#decl': `
+      in float instanceOffsets;
+      flat out float vInstanceType;
+    `,
+    'vs:#main-end': `
+      vInstanceType = instanceTypes;
+    `,
+    'fs:#decl': `
+      uniform pathStyleUniforms {
+        float debug;
+      } pathStyle;
+      flat in float vInstanceType;
+    `,
+    'fs:#main-end': `
+      // First segment (instanceType == 1.0) gets 0.5 opacity
+      if (vInstanceType == 1.0) {
+        fragColor.a *= 0.5;
+      }
+    `
+  }
+};

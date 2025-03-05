@@ -8,7 +8,7 @@ import {Map, NavigationControl, useControl} from 'react-map-gl/maplibre';
 import {GeoJsonLayer} from 'deck.gl';
 import {MapboxOverlay as DeckOverlay} from '@deck.gl/mapbox';
 import {PathStyleExtension} from '@deck.gl/extensions';
-import {curvedLine} from './constants';
+import {curvedLine, curvedLine2} from './constants';
 import 'maplibre-gl/dist/maplibre-gl.css';
 
 const INITIAL_VIEW_STATE = {
@@ -31,9 +31,31 @@ function Root() {
   const [offset, setOffset] = useState(0);
 
   const layers = [
+    // new GeoJsonLayer({
+    //   id: 'line1',
+    //   data: curvedLine,
+    //   getLineColor: [200, 0, 128],
+    //   lineWidthMinPixels: 5,
+    //   getSingleOffset: () => Number(offset),
+    //   extensions: [new PathStyleExtension({singleOffset: true})],
+    //   updateTriggers: {
+    //     getSingleOffset: offset
+    //   }
+    // }),
+    // new GeoJsonLayer({
+    //   id: 'line2',
+    //   data: curvedLine,
+    //   getLineColor: [128, 0, 200],
+    //   lineWidthMinPixels: 5,
+    //   getSingleOffset: () => -Number(offset),
+    //   extensions: [new PathStyleExtension({singleOffset: true})],
+    //   updateTriggers: {
+    //     getSingleOffset: offset
+    //   }
+    // }),
     new GeoJsonLayer({
-      id: 'curved-line',
-      data: curvedLine,
+      id: 'line1-extension-offset',
+      data: curvedLine2,
       getLineColor: [200, 0, 128],
       lineWidthMinPixels: 5,
       getSingleOffset: () => Number(offset),
@@ -42,15 +64,27 @@ function Root() {
         getSingleOffset: offset
       }
     }),
+    // new GeoJsonLayer({
+    //   id: 'line1-extension',
+    //   data: curvedLine2,
+    //   getLineColor: [200, 0, 128],
+    //   lineWidthMinPixels: 5,
+    //   opacity: 0.5
+    //   // getSingleOffset: () => Number(offset),
+    //   // extensions: [new PathStyleExtension({singleOffset: true})],
+    //   // updateTriggers: {
+    //   //   getSingleOffset: offset
+    //   // }
+    // }),
     new GeoJsonLayer({
-      id: 'curved-line2',
+      id: 'variable-offset-line',
       data: curvedLine,
-      getLineColor: [128, 0, 200],
+      getLineColor: [200, 0, 128],
       lineWidthMinPixels: 5,
-      getSingleOffset: () => -Number(offset),
-      extensions: [new PathStyleExtension({singleOffset: true})],
+      getOffset: () => Number(offset),
+      extensions: [new PathStyleExtension({variableOffset: true})],
       updateTriggers: {
-        getSingleOffset: offset
+        getOffset: offset
       }
     })
   ];
@@ -90,4 +124,6 @@ function Root() {
 
 /* global document */
 const container = document.body.appendChild(document.createElement('div'));
+// make overflow auto
+container.style.overflow = 'auto';
 createRoot(container).render(<Root />);

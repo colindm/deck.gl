@@ -15,4 +15,21 @@ export const curvedLine = {
       }
     }
   ]
-}; 
+};
+
+export const curvedLine2 = {
+  type: 'FeatureCollection',
+  features: [
+    {
+      type: 'Feature',
+      geometry: {
+        type: 'LineString',
+        coordinates: [
+          [11, 47.6],
+          [11.5, 47.1],
+          [12, 47.0]
+        ]
+      }
+    }
+  ]
+};

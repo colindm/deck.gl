@@ -33,49 +33,49 @@ export const lineConnect = {
     }
   ]
 };
-export const lineConnect2 = {
-  type: 'FeatureCollection',
-  features: [
-    {
-      type: 'Feature',
-      geometry: {
-        type: 'LineString',
-        coordinates: [
-          [11, 47.6],
-          [12, 47.0]
-        ]
-      }
-    }
-  ]
-};
-export const lineConnect3 = {
-  type: 'FeatureCollection',
-  features: [
-    {
-      type: 'Feature',
-      geometry: {
-        type: 'LineString',
-        coordinates: [
-          [12, 47.0],
-          [13, 45.4]
-        ]
-      }
-    }
-  ]
-};
+// export const lineConnect2 = {
+//   type: 'FeatureCollection',
+//   features: [
+//     {
+//       type: 'Feature',
+//       geometry: {
+//         type: 'LineString',
+//         coordinates: [
+//           [11, 47.6],
+//           [12, 47.0]
+//         ]
+//       }
+//     }
+//   ]
+// };
+// export const lineConnect3 = {
+//   type: 'FeatureCollection',
+//   features: [
+//     {
+//       type: 'Feature',
+//       geometry: {
+//         type: 'LineString',
+//         coordinates: [
+//           [12, 47.0],
+//           [13, 45.4]
+//         ]
+//       }
+//     }
+//   ]
+// };
 
-export const line2 = {
-  type: 'FeatureCollection',
-  features: [
-    {
-      type: 'Feature',
-      geometry: {
-        type: 'LineString',
-        coordinates: [
-          [9.64, 48.67],
-          [1.66, 52.66]
-        ]
-      }
-    }
-  ]
-};
+// export const line2 = {
+//   type: 'FeatureCollection',
+//   features: [
+//     {
+//       type: 'Feature',
+//       geometry: {
+//         type: 'LineString',
+//         coordinates: [
+//           [9.64, 48.67],
+//           [1.66, 52.66]
+//         ]
+//       }
+//     }
+//   ]
+// };
