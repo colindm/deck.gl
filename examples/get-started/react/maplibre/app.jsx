@@ -28,7 +28,7 @@ function DeckGLOverlay(props) {
 }
 
 function Root() {
-  const [offset, setOffset] = useState(0);
+  const [offset, setOffset] = useState(1);
 
   const layers = [
     // new GeoJsonLayer({

@@ -235,14 +235,34 @@ export const variableOffsetShaders = {
       in float instanceSegmentIndices;
       flat out float vSegmentIndex;
     `,
+    'vs:DECKGL_FILTER_SIZE': `
+      if (instanceSegmentIndices < 3.0) {
+        float offsetWidth = abs(instanceOffsets * 2.0) + 1.0;
+        size *= offsetWidth;
+      }
+    `,
     'vs:#main-end': `
       vSegmentIndex = instanceSegmentIndices;
+      if (instanceSegmentIndices < 3.0) {
+        float offsetWidth = abs(instanceOffsets * 2.0) + 1.0;
+        float offsetDir = sign(instanceOffsets);
+        vPathPosition.x = (vPathPosition.x + offsetDir) * offsetWidth - offsetDir;
+      }
     `,
     'fs:#decl': `
       uniform pathStyleUniforms {
         float debug;
       } pathStyle;
       flat in float vSegmentIndex;
+    `,
+    'fs:#main-start': `
+      float isInside = 1.0;
+      if (vSegmentIndex < 3.0) {
+        isInside = step(-1.0, vPathPosition.x) * step(vPathPosition.x, 1.0);
+        if (isInside == 0.0) {
+          discard;
+        }
+      }
     `,
     'fs:#main-end': `
       // First three segments get 0.5 opacity
