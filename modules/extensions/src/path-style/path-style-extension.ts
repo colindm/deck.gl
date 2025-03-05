@@ -18,10 +18,18 @@ const defaultProps = {
   getDashArray: {type: 'accessor', value: [0, 0]},
   getMultiOffset: {type: 'accessor', value: [0, 0]},
   getSingleOffset: {type: 'accessor', value: 0},
-  getOffset: {type: 'accessor', value: 0},
+  getSegmentOffsets: {
+    type: 'accessor',
+    value: {
+      // offset: 0,
+      // segmentNum: 0,
+      segmentOffsets: [0, 0, 0]
+    }
+  },
+  // getSegmentNum: {type: 'accessor', value: 0},
   dashJustified: false,
-  dashGapPickable: false,
-  getSegmentOffsets: {type: 'accessor', value: [0, 0, 0, 0, 0]} // Default 5 segments with no offset
+  dashGapPickable: false
+  // getSegmentOffsets: {type: 'accessor', value: [0, 0, 0, 0, 0]} // Default 5 segments with no offset
 };
 
 type PathStyleProps = {
@@ -54,7 +62,10 @@ export type PathStyleExtensionProps<DataT = any> = {
    * Accessor for the offset to draw each path with for variable offset mode
    * @default 0
    */
-  getOffset?: Accessor<DataT, number>;
+  getSegmentOffsets?: Accessor<
+    DataT,
+    {offset: number; segmentNum: number; segmentOffsets: number[]}
+  >;
   /**
    * If `true`, adjust gaps for the dashes to align at both ends.
    * @default false
@@ -69,7 +80,8 @@ export type PathStyleExtensionProps<DataT = any> = {
    * Array of offsets for each segment of the path
    * @default [0, 0, 0, 0, 0]
    */
-  getSegmentOffsets?: Accessor<DataT, number[]>;
+  // getSegmentOffsets?: Accessor<DataT, number[]>;
+  // getTargetDistance?: Accessor<DataT, number>;
 };
 
 export type PathStyleExtensionOptions = {
@@ -201,7 +213,18 @@ export default class PathStyleExtension extends LayerExtension<PathStyleExtensio
     }
     if (extension.opts.variableOffset) {
       attributeManager.addInstanced({
-        instanceOffsets: {size: 1, accessor: 'getOffset'},
+        instanceOffsets: {
+          size: 1,
+          accessor: 'getSegmentOffsets',
+          transform: (data: {
+            // offset: number;
+            // segmentNum: number;
+            segmentOffsets: {segmentOffsets: number[]};
+          }) => {
+            // Return the segment offset array directly
+            return data.segmentOffsets.segmentOffsets;
+          }
+        },
         instanceSegmentIndices: {
           size: 1,
           vertexOffset: 0,

@@ -189,86 +189,56 @@ in float instanceOffsets;
   vPathLength *= offsetWidth;
 `,
     'fs:#main-start': `
-  float isInside;
-  isInside = step(-1.0, vPathPosition.x) * step(vPathPosition.x, 1.0);
-  if (isInside == 0.0) {
+  float dist = abs(vPathPosition.x);
+  // Smooth transition at the edges (from 0.8 to 1.2 for a slightly wider antialiasing band)
+  float opacity = 1.0 - smoothstep(0.8, 1.2, dist);
+  if (opacity < 0.001) {
     discard;
   }
+`,
+    'fs:#main-end': `
+  fragColor.a *= opacity;
 `
   }
 };
 
-// export const singleOffsetShaders = {
-//   inject: {
-//     'vs:#decl': `
-//   in vec2 instanceOffsets;
-//   `,
-//     'vs:DECKGL_FILTER_SIZE': `
-//     float offsetWidth = abs(instanceOffsets.y * 2.0) + 1.0;
-//     size *= offsetWidth;
-//   `,
-//     'vs:#main-end': `
-//     float offsetWidth = abs(instanceOffsets.y * 2.0) + 1.0;
-//     float offsetDir = -sign(instanceOffsets.y);
-//     vPathPosition.x = (vPathPosition.x + offsetDir) * offsetWidth - offsetDir;
-//     vPathPosition.y *= offsetWidth;
-//     vPathLength *= offsetWidth;
-//   `,
-//     'fs:#main-start': `
-//     float dist = abs(vPathPosition.x);
-//     // Smooth transition at the edges (from 0.9 to 1.1 for a slightly wider antialiasing band)
-//     float opacity = 1.0 - smoothstep(0.9, 1.1, dist);
-//   `,
-//     'fs:#main-end': `
-//     fragColor.a *= opacity;
-//     if (fragColor.a < 0.001) {
-//       discard;
-//     }
-//   `
-//   }
-// };
-
 export const variableOffsetShaders = {
   inject: {
     'vs:#decl': `
-      in float instanceOffsets;
+      in float instanceOffsets;  // The segment-specific offset value
       in float instanceSegmentIndices;
       flat out float vSegmentIndex;
+      flat out float vSegmentNum;
     `,
     'vs:DECKGL_FILTER_SIZE': `
-      if (instanceSegmentIndices < 3.0) {
-        float offsetWidth = abs(instanceOffsets * 2.0) + 1.0;
-        size *= offsetWidth;
-      }
+      // Use the segment-specific offset directly
+      float offsetWidth = abs(instanceOffsets * 2.0) + 1.0;
+      size *= offsetWidth;
     `,
     'vs:#main-end': `
       vSegmentIndex = instanceSegmentIndices;
-      if (instanceSegmentIndices < 3.0) {
-        float offsetWidth = abs(instanceOffsets * 2.0) + 1.0;
-        float offsetDir = sign(instanceOffsets);
-        vPathPosition.x = (vPathPosition.x + offsetDir) * offsetWidth - offsetDir;
-      }
+      
+      // Use the segment-specific offset directly
+      float offsetWidth = abs(instanceOffsets * 2.0) + 1.0;
+      float offsetDir = sign(instanceOffsets);
+      vPathPosition.x = (vPathPosition.x + offsetDir) * offsetWidth - offsetDir;
     `,
     'fs:#decl': `
       uniform pathStyleUniforms {
         float debug;
       } pathStyle;
       flat in float vSegmentIndex;
+      flat in float vSegmentNum;
     `,
     'fs:#main-start': `
-      float isInside = 1.0;
-      if (vSegmentIndex < 3.0) {
-        isInside = step(-1.0, vPathPosition.x) * step(vPathPosition.x, 1.0);
-        if (isInside == 0.0) {
-          discard;
-        }
+      float isInside = step(-1.0, vPathPosition.x) * step(vPathPosition.x, 1.0);
+      if (isInside == 0.0) {
+        discard;
       }
     `,
     'fs:#main-end': `
-      // First three segments get 0.5 opacity
-      if (vSegmentIndex < 3.0) {
-        fragColor.a *= 0.5;
-      }
+      // Apply opacity to all segments
+      fragColor.a *= 0.5;
     `
   }
 };

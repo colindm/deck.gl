@@ -29,6 +29,14 @@ function DeckGLOverlay(props) {
 
 function Root() {
   const [offset, setOffset] = useState(1);
+  const [segmentNum, setSegmentNum] = useState(0);
+
+  /** The offsets for each segment */
+  const segmentOffsets = {
+    segmentOffsets: [1, 0.75, 0.5, 0.25, 0, 0, 0, 0, 0, 0]
+  };
+
+  // Simple test path
 
   const layers = [
     // new GeoJsonLayer({
@@ -61,7 +69,7 @@ function Root() {
       getSingleOffset: () => Number(offset),
       extensions: [new PathStyleExtension({singleOffset: true})],
       updateTriggers: {
-        getSingleOffset: offset
+        getSingleOffset: segmentOffsets
       }
     }),
     // new GeoJsonLayer({
@@ -76,15 +84,25 @@ function Root() {
     //   //   getSingleOffset: offset
     //   // }
     // }),
+    // new GeoJsonLayer({
+    //   id: 'variable-offset-line-ref',
+    //   data: curvedLine,
+    //   getLineColor: [0, 0, 200],
+    //   lineWidthMinPixels: 3
+    // }),
     new GeoJsonLayer({
       id: 'variable-offset-line',
       data: curvedLine,
       getLineColor: [200, 0, 128],
       lineWidthMinPixels: 5,
-      getOffset: () => Number(offset),
+      getSegmentOffsets: () => ({
+        // offset: Number(offset),
+        // segmentNum: Number(segmentNum),
+        segmentOffsets
+      }),
       extensions: [new PathStyleExtension({variableOffset: true})],
       updateTriggers: {
-        getOffset: offset
+        getSegmentOffsets: [segmentOffsets]
       }
     })
   ];
@@ -95,23 +113,37 @@ function Root() {
         style={{
           position: 'absolute',
           display: 'flex',
+          flexDirection: 'column',
           top: 5,
           left: 80,
           zIndex: 1,
           backgroundColor: 'white',
-          paddingLeft: 5,
-          paddingRight: 5
+          padding: 5
         }}
       >
-        <input
-          type="range"
-          min="-5"
-          max="5"
-          step={0.5}
-          value={offset}
-          onChange={e => setOffset(Number(e.target.value))}
-        />
-        <p>Offset: {offset}</p>
+        <div>
+          <input
+            type="range"
+            min="-5"
+            max="5"
+            step={0.5}
+            value={offset}
+            onChange={e => setOffset(Number(e.target.value))}
+          />
+          <p>Offset: {offset}</p>
+        </div>
+
+        <div>
+          <input
+            type="range"
+            min="0"
+            max="10"
+            step={1}
+            value={segmentNum}
+            onChange={e => setSegmentNum(Number(e.target.value))}
+          />
+          <p>Segment Number: {segmentNum}</p>
+        </div>
       </div>
 
       <Map initialViewState={INITIAL_VIEW_STATE} mapStyle={MAP_STYLE}>
