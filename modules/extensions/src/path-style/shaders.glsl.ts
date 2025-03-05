@@ -232,20 +232,21 @@ export const variableOffsetShaders = {
   inject: {
     'vs:#decl': `
       in float instanceOffsets;
-      flat out float vInstanceType;
+      in float instanceSegmentIndices;
+      flat out float vSegmentIndex;
     `,
     'vs:#main-end': `
-      vInstanceType = instanceTypes;
+      vSegmentIndex = instanceSegmentIndices;
     `,
     'fs:#decl': `
       uniform pathStyleUniforms {
         float debug;
       } pathStyle;
-      flat in float vInstanceType;
+      flat in float vSegmentIndex;
     `,
     'fs:#main-end': `
-      // First segment (instanceType == 1.0) gets 0.5 opacity
-      if (vInstanceType == 1.0) {
+      // First three segments get 0.5 opacity
+      if (vSegmentIndex < 3.0) {
         fragColor.a *= 0.5;
       }
     `

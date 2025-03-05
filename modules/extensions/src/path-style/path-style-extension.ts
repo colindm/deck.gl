@@ -201,7 +201,20 @@ export default class PathStyleExtension extends LayerExtension<PathStyleExtensio
     }
     if (extension.opts.variableOffset) {
       attributeManager.addInstanced({
-        instanceOffsets: {size: 1, accessor: 'getOffset'}
+        instanceOffsets: {size: 1, accessor: 'getOffset'},
+        instanceSegmentIndices: {
+          size: 1,
+          vertexOffset: 0,
+          update: attribute => {
+            const {pathTesselator} = this.state as any;
+            const numInstances = pathTesselator.instanceCount;
+            const value = new Float32Array(numInstances);
+            for (let i = 0; i < numInstances; i++) {
+              value[i] = i;
+            }
+            attribute.value = value;
+          }
+        }
       });
     }
   }
