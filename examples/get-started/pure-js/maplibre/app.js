@@ -7,6 +7,7 @@ import {GeoJsonLayer, ArcLayer} from '@deck.gl/layers';
 import {PathStyleExtension} from '@deck.gl/extensions';
 import maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
+import {line, lineConnect, lineConnect2, lineConnect3, line2} from './constants';
 
 // source: Natural Earth http://www.naturalearthdata.com/ via geojson.xyz
 const AIR_PORTS =
@@ -22,150 +23,51 @@ const map = new maplibregl.Map({
   antialias: true
 });
 
-// basic feature collection with line from london to zurcich
-const line = {
-  type: 'FeatureCollection',
-  features: [
-    {
-      type: 'Feature',
-      geometry: {
-        type: 'LineString',
-        coordinates: [
-          [1.46, 52.46],
-          [9.54, 48.37]
-        ]
-      }
-    }
-  ]
-};
+let offset = 0;
 
-const lineConnect = {
-  type: 'FeatureCollection',
-  features: [
-    {
-      type: 'Feature',
-      geometry: {
-        type: 'LineString',
-        coordinates: [
-          [9.54, 48.37],
-          [11, 47.6]
-        ]
-      }
-    }
-  ]
-};
-const lineConnect2 = {
-  type: 'FeatureCollection',
-  features: [
-    {
-      type: 'Feature',
-      geometry: {
-        type: 'LineString',
-        coordinates: [
-          [11, 47.6],
-          [12, 47.0]
-        ]
-      }
-    }
-  ]
-};
-const lineConnect3 = {
-  type: 'FeatureCollection',
-  features: [
-    {
-      type: 'Feature',
-      geometry: {
-        type: 'LineString',
-        coordinates: [
-          [12, 47.0],
-          [13, 45.4]
-        ]
-      }
-    }
-  ]
-};
-
-const line2 = {
-  type: 'FeatureCollection',
-  features: [
-    {
-      type: 'Feature',
-      geometry: {
-        type: 'LineString',
-        coordinates: [
-          [9.64, 48.67],
-          [1.66, 52.66]
-        ]
-      }
-    }
-  ]
-};
+const createLayers = () => [
+  new GeoJsonLayer({
+    id: 'line-connect',
+    data: lineConnect,
+    getLineColor: [200, 0, 128],
+    lineWidthMinPixels: 10,
+    getSingleOffset: () => offset,
+    extensions: [new PathStyleExtension({singleOffset: true})]
+  }),
+  new GeoJsonLayer({
+    id: 'line2',
+    data: line2,
+    getLineColor: [128, 0, 200],
+    lineWidthMinPixels: 10
+  })
+];
 
 const deckOverlay = new DeckOverlay({
   interleaved: true,
-  layers: [
-    new GeoJsonLayer({
-      id: 'line',
-      data: line,
-      getLineColor: [200, 0, 128],
-      lineWidthMinPixels: 10
-    }),
-    new GeoJsonLayer({
-      id: 'line-connect',
-      data: lineConnect,
-      getLineColor: [200, 0, 128],
-      lineWidthMinPixels: 5,
-      getMultiOffset: f => [1, 3],
-      extensions: [new PathStyleExtension({multiOffset: true})]
-    }),
-    new GeoJsonLayer({
-      id: 'line-connect2',
-      data: lineConnect2,
-      getLineColor: [200, 0, 128],
-      lineWidthMinPixels: 5,
-      // lineCapRounded: true,
-      getSingleOffset: f => -3,
-      extensions: [new PathStyleExtension({singleOffset: true})]
-    }),
-    new GeoJsonLayer({
-      id: 'line-connect3',
-      data: lineConnect3,
-      getLineColor: [200, 0, 128],
-      lineWidthMinPixels: 10,
-      getSingleOffset: f => -2,
-      extensions: [new PathStyleExtension({singleOffset: true})]
-    }),
-    // new GeoJsonLayer({
-    //   id: 'line-parallel',
-    //   data: line,
-    //   getLineColor: [128, 0, 200],
-    //   getLineWidth: 10,
-    //   lineWidthMinPixels: 10,
-    //   getOffset: f => [1, -1],
-    //   extensions: [new PathStyleExtension({offset: true})]
-    // }),
-
-    // new GeoJsonLayer({
-    //   id: 'line3',
-    //   data: line,
-    //   getLineColor: [128, 0, 200],
-    //   getLineWidth: 7,
-    //   lineWidthMinPixels: 5,
-    //   getOffset: (f) => [2,2],
-    //   extensions: [new PathStyleExtension({ offset: true })],
-    // }),
-
-    new GeoJsonLayer({
-      id: 'line2',
-      data: line2,
-      getLineColor: [128, 0, 200],
-      // getLineWidth: 8,
-      lineWidthMinPixels: 10
-      // getOffset: (f) => [0,0],
-      // extensions: [new PathStyleExtension({ offset: true })],
-    })
-  ]
+  layers: createLayers()
 });
 
 map.addControl(deckOverlay);
 map.addControl(new maplibregl.NavigationControl());
+
+// add offset input control slider
+if (typeof document !== 'undefined') {
+  const offsetInput = document.createElement('input');
+  offsetInput.type = 'range';
+  offsetInput.min = -10;
+  offsetInput.max = 10;
+  offsetInput.value = offset;
+  offsetInput.style.position = 'absolute';
+  offsetInput.style.top = '20px';
+  offsetInput.style.left = '20px';
+  offsetInput.style.zIndex = '1';
+
+  document.body.appendChild(offsetInput);
+
+  offsetInput.addEventListener('input', e => {
+    offset = Number(e.target.value);
+    deckOverlay.setProps({
+      layers: createLayers()
+    });
+  });
+}
